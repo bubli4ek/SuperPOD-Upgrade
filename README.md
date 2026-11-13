@@ -1,6 +1,6 @@
 # H100 SuperPOD Pre-Upgrade Data Collection
 
-All of the collection commands below are **read-only**. Run them on the **active BCM head node** as root unless a section says otherwise. Everything is written into one timestamped folder, so the customer can attach it to a support case or compare it after the upgrade.
+All of the collection commands below are **read-only**. Run them on the **active BCM head node** as root unless a section says otherwise. Everything is written into one timestamped folder, so you can tar/zip it and share with your NVIDIA CBU SA.
 
 ---
 
@@ -71,7 +71,7 @@ cmsh -c "device; filewriteinfo" > bcm/filewriteinfo.txt
 
 ### 2.1 Load each cluster context
 
-BCM normally uses `k8s-system-admin` and `k8s-system-user` as the cluster names.
+BCM normally uses `k8s-system-admin` and `k8s-system-user` as the cluster names. Use your cluster names, if they differ from the default ones.
 
 ```bash
 module avail 2>&1 | grep -i kubernetes > nmc/k8s-modules.txt
@@ -79,11 +79,11 @@ module avail 2>&1 | grep -i kubernetes > nmc/k8s-modules.txt
 
 ### 2.2 Releases and workloads
 
-Run commands in 2.2, 3.1, 3.2, 3.3 in each kubernetes cluster (k8s-system-admin, k8s-system-user, etc.) 
+Run commands in 2.2, 3.1, 3.2, 3.3 in each Kubernetes cluster, k8s-system-admin in the first pass and as k8s-system-user in the second pass.
 
 ```bash
-module load kubernetes/k8s-system-admin           # repeat everything in 2.2 for k8s-system-user modeule for the second pass
-CL=k8s-system-admin   # set to "k8s-system-user" for the second pass
+module load kubernetes/k8s-system-admin
+CL=k8s-system-admin
 helm list -A -o yaml > nmc/$CL-helm-releases.yaml
 for r in $(helm list -A -o json | jq -r '.[]|"\(.namespace)/\(.name)"'); do
   ns=${r%/*}; n=${r#*/}
@@ -173,8 +173,6 @@ tar czf os/head-etc.tgz /etc
 ```
 
 ### 5.2 Each compute and Kubernetes node category
-
-Run this once per category:
 
 ```bash
 cmsh -c "device; pexec -t PhysicalNode -j -- cat /etc/os-release | grep PRETTY" > os/PhysicalNode-release.txt
